@@ -1,34 +1,27 @@
-extern crate clap;
 extern crate exonum;
 extern crate exopoll;
 
-use clap::{App, AppSettings, Arg};
-use exonum::helpers::config::ConfigFile;
-use exonum::node::Node;
-use exonum::storage::MemoryDB;
+use exonum::{crypto, blockchain, helpers, helpers::fabric};
 
-use exopoll::service;
+
+#[derive(Debug)]
+pub struct ServiceFactory;
+
+impl fabric::ServiceFactory for ServiceFactory {
+    fn service_name(&self) -> &str {
+        exopoll::service::SERVICE_NAME
+    }
+
+    fn make_service(&mut self, _: &fabric::Context) -> Box<dyn blockchain::Service> {
+        Box::new(exopoll::service::PollService)
+    }
+}
 
 fn main() {
-    let app = App::new("Exopoll node")
-        .setting(AppSettings::ArgRequiredElseHelp)
-        .about("Run node with a specified config.")
-        .arg(
-            Arg::with_name("CONFIG")
-                .help("Node's config file")
-                .required(true),
-        ).get_matches();
+    crypto::init();
+    helpers::init_logger().unwrap();
 
-    let config_file = app.value_of("CONFIG").unwrap();
-    let config = ConfigFile::load(config_file).expect("invalid config");
-
-    exonum::helpers::init_logger().unwrap();
-
-    let node = Node::new(
-        MemoryDB::new(),
-        vec![Box::new(service::PollService)],
-        config,
-        None, // config path
-    );
-    node.run().unwrap();
+    fabric::NodeBuilder::new()
+        .with_service(Box::new(ServiceFactory))
+        .run();
 }

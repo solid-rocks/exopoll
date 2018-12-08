@@ -18,7 +18,8 @@ transactions! {
 
 impl Transaction for TxRegisterVoter {
     fn verify(&self) -> bool {
-        // TODO: only registered authotites are able to register voters
+        // FIXME: only registered authotites are able to register voters
+        // FIXME: check if `uid` or `ballot` are already registered
         true
     }
 

@@ -27,6 +27,14 @@ impl<T: AsRef<dyn Snapshot>> PollServiceSchema<T> {
             self.view.as_ref());
         voters.get(&uid)
     }
+
+    pub fn get_voters(&self) -> Vec<Voter> {
+        let voters: MapIndex<_, Hash, Voter> = MapIndex::new(
+            VOTERS_DB_KEY,
+            self.view.as_ref());
+        let vec = voters.values();
+        vec.collect()
+    }
 }
 
 impl<'a> PollServiceSchema<&'a mut Fork> {
