@@ -22,16 +22,14 @@ impl<T: AsRef<dyn Snapshot>> PollServiceSchema<T> {
     }
 
     pub fn get_voter(&self, uid: &Hash) -> Option<Voter> {
-        let voters: MapIndex<_, Hash, Voter> = MapIndex::new(
-            VOTERS_DB_KEY,
-            self.view.as_ref());
+        let voters: MapIndex<_, Hash, Voter> =
+            MapIndex::new(VOTERS_DB_KEY, self.view.as_ref());
         voters.get(&uid)
     }
 
     pub fn get_voters(&self) -> Vec<Voter> {
-        let voters: MapIndex<_, Hash, Voter> = MapIndex::new(
-            VOTERS_DB_KEY,
-            self.view.as_ref());
+        let voters: MapIndex<_, Hash, Voter> =
+            MapIndex::new(VOTERS_DB_KEY, self.view.as_ref());
         let vec = voters.values();
         vec.collect()
     }

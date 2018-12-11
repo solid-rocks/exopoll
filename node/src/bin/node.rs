@@ -1,8 +1,7 @@
 extern crate exonum;
 extern crate exopoll;
 
-use exonum::{crypto, blockchain, helpers, helpers::fabric};
-
+use exonum::{blockchain, crypto, helpers, helpers::fabric};
 
 #[derive(Debug)]
 pub struct ServiceFactory;
@@ -12,7 +11,10 @@ impl fabric::ServiceFactory for ServiceFactory {
         exopoll::service::SERVICE_NAME
     }
 
-    fn make_service(&mut self, _: &fabric::Context) -> Box<dyn blockchain::Service> {
+    fn make_service(
+        &mut self,
+        _: &fabric::Context,
+    ) -> Box<dyn blockchain::Service> {
         Box::new(exopoll::service::PollService)
     }
 }

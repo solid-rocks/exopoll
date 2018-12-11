@@ -25,9 +25,10 @@ impl Service for PollService {
         vec![]
     }
 
-    fn tx_from_raw(&self, raw: RawTransaction)
-        -> Result<Box<dyn Transaction>, EncodingError>
-    {
+    fn tx_from_raw(
+        &self,
+        raw: RawTransaction,
+    ) -> Result<Box<dyn Transaction>, EncodingError> {
         let tx = PollServiceTransactions::tx_from_raw(raw)?;
         Ok(tx.into())
     }

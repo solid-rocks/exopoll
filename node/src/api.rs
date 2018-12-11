@@ -3,10 +3,8 @@ use exonum::blockchain::Transaction;
 use exonum::crypto::Hash;
 use exonum::node::TransactionSend;
 
-
-use schema::{Voter, PollServiceSchema};
+use schema::{PollServiceSchema, Voter};
 use transactions::TxRegisterVoter;
-
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct GetVoterQuery {
@@ -18,12 +16,12 @@ pub struct PollServiceApi;
 impl PollServiceApi {
     // FIXME: this one must accept only signed transactions as only authorized participants
     // should be able to register voters.
-    fn add_voter(state: &ServiceApiState, voter: Voter) -> api::Result<Hash>
-    {
+    fn add_voter(state: &ServiceApiState, voter: Voter) -> api::Result<Hash> {
         let tx = TxRegisterVoter::new(
             voter.uid(),
             voter.ballot(),
-            state.secret_key());
+            state.secret_key(),
+        );
 
         let tx_box: Box<Transaction> = tx.into();
         let tx_hash = tx_box.hash();
@@ -33,19 +31,23 @@ impl PollServiceApi {
         }
     }
 
-    fn get_voter(state: &ServiceApiState, query: GetVoterQuery) -> api::Result<Voter> {
+    fn get_voter(
+        state: &ServiceApiState,
+        query: GetVoterQuery,
+    ) -> api::Result<Voter> {
         let schema = PollServiceSchema::new(state.snapshot());
         schema
             .get_voter(&query.uid)
             .ok_or_else(|| api::Error::NotFound("No such voter".to_string()))
     }
 
-    fn get_all_voters(state: &ServiceApiState, _query: ()) -> api::Result<Vec<Voter>>
-    {
+    fn get_all_voters(
+        state: &ServiceApiState,
+        _query: (),
+    ) -> api::Result<Vec<Voter>> {
         let schema = PollServiceSchema::new(state.snapshot());
         Ok(schema.get_voters())
     }
-
 
     // fn prepare_vote()
     // fn inspect_vote()
