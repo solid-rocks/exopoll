@@ -1,0 +1,17 @@
+
+syntax = "proto3";
+
+package exopoll;
+
+import "helpers.proto";
+
+
+message Voter {
+  exonum.Hash uid = 1;
+  exonum.Hash ballot = 2;
+}
+
+message TxRegisterVoter {
+  exonum.Hash uid = 1;
+  exonum.Hash ballot = 2;
+}

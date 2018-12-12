@@ -1,31 +1,44 @@
-use exonum::blockchain::{ExecutionResult, Transaction};
-use exonum::crypto::Hash;
-use exonum::storage::Fork;
+use exonum::blockchain::{ExecutionResult, Transaction, TransactionContext};
+use exonum::crypto::{Hash, PublicKey, SecretKey};
+use exonum::messages::{Message, RawTransaction, Signed};
 
-use schema::PollServiceSchema;
+use proto;
+use schema::PollSchema;
 use service;
 
-transactions! {
-    pub PollServiceTransactions {
-        const SERVICE_ID = service::SERVICE_ID;
-
-        struct TxRegisterVoter {
-            uid: &Hash,
-            ballot: &Hash,
-        }
-    }
+#[derive(Serialize, Deserialize, Clone, Debug, ProtobufConvert)]
+#[exonum(pb = "proto::TxRegisterVoter")]
+pub struct TxRegisterVoter {
+    pub uid: Hash,
+    pub ballot: Hash,
 }
 
 impl Transaction for TxRegisterVoter {
-    fn verify(&self) -> bool {
-        // FIXME: only registered authotites are able to register voters
-        // FIXME: check if `uid` or `ballot` are already registered
-        true
-    }
-
-    fn execute(&self, view: &mut Fork) -> ExecutionResult {
-        let mut schema = PollServiceSchema::new(view);
-        schema.add_voter(self.uid(), self.ballot());
+    // FIXME: only registered authotites are able to register voters
+    // FIXME: check if `uid` or `ballot` are already registered
+    fn execute(&self, mut context: TransactionContext) -> ExecutionResult {
+        let view = context.fork();
+        let mut schema = PollSchema::new(view);
+        schema.add_voter(&self.uid, &self.ballot);
         Ok(())
     }
+}
+
+impl TxRegisterVoter {
+    pub fn new(&uid: &Hash, &ballot: &Hash) -> Self {
+        TxRegisterVoter { uid, ballot }
+    }
+
+    pub fn sign(
+        self,
+        pk: &PublicKey,
+        sk: &SecretKey,
+    ) -> Signed<RawTransaction> {
+        Message::sign_transaction(self, service::SERVICE_ID, *pk, sk)
+    }
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, TransactionSet)]
+pub enum PollTransactions {
+    RegisterVoter(TxRegisterVoter),
 }

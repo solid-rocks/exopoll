@@ -1,12 +1,11 @@
 use exonum::api::ServiceApiBuilder;
 use exonum::blockchain::{Service, Transaction, TransactionSet};
 use exonum::crypto::Hash;
-use exonum::encoding::Error as EncodingError;
 use exonum::messages::RawTransaction;
 use exonum::storage::Snapshot;
 
 use api::PollServiceApi;
-use transactions::PollServiceTransactions;
+use transactions::PollTransactions;
 
 pub const SERVICE_ID: u16 = 0x5741;
 pub const SERVICE_NAME: &str = "poll";
@@ -28,8 +27,8 @@ impl Service for PollService {
     fn tx_from_raw(
         &self,
         raw: RawTransaction,
-    ) -> Result<Box<dyn Transaction>, EncodingError> {
-        let tx = PollServiceTransactions::tx_from_raw(raw)?;
+    ) -> Result<Box<dyn Transaction>, failure::Error> {
+        let tx = PollTransactions::tx_from_raw(raw)?;
         Ok(tx.into())
     }
 

@@ -1,9 +1,8 @@
 use exonum::api::{self, ServiceApiBuilder, ServiceApiState};
-use exonum::blockchain::Transaction;
 use exonum::crypto::Hash;
-use exonum::node::TransactionSend;
+use exonum::node::ExternalMessage;
 
-use schema::{PollServiceSchema, Voter};
+use schema::{PollSchema, Voter};
 use transactions::TxRegisterVoter;
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -16,26 +15,24 @@ pub struct PollServiceApi;
 impl PollServiceApi {
     // FIXME: this one must accept only signed transactions as only authorized participants
     // should be able to register voters.
+    #[allow(clippy::needless_pass_by_value)]
     fn add_voter(state: &ServiceApiState, voter: Voter) -> api::Result<Hash> {
-        let tx = TxRegisterVoter::new(
-            voter.uid(),
-            voter.ballot(),
-            state.secret_key(),
-        );
-
-        let tx_box: Box<Transaction> = tx.into();
-        let tx_hash = tx_box.hash();
-        match state.sender().send(tx_box) {
+        let tx = TxRegisterVoter::new(&voter.uid, &voter.ballot);
+        let signed_tx = tx.sign(state.public_key(), state.secret_key());
+        let tx_hash = signed_tx.hash();
+        let msg = ExternalMessage::Transaction(signed_tx);
+        match state.sender().send_external_message(msg) {
             Ok(_) => Ok(tx_hash),
             Err(err) => Err(api::Error::BadRequest(err.to_string())),
         }
     }
 
+    #[allow(clippy::needless_pass_by_value)]
     fn get_voter(
         state: &ServiceApiState,
         query: GetVoterQuery,
     ) -> api::Result<Voter> {
-        let schema = PollServiceSchema::new(state.snapshot());
+        let schema = PollSchema::new(state.snapshot());
         schema
             .get_voter(&query.uid)
             .ok_or_else(|| api::Error::NotFound("No such voter".to_string()))
@@ -45,7 +42,7 @@ impl PollServiceApi {
         state: &ServiceApiState,
         _query: (),
     ) -> api::Result<Vec<Voter>> {
-        let schema = PollServiceSchema::new(state.snapshot());
+        let schema = PollSchema::new(state.snapshot());
         Ok(schema.get_voters())
     }
 
