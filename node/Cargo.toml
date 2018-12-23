@@ -24,6 +24,10 @@ git = "https://github.com/exonum/exonum/"
 rev = "9bc8ccbc6abfa078f401d9fb05b753a344338268"
 
 
+[dev-dependencies.exonum-testkit]
+git = "https://github.com/exonum/exonum"
+rev = "9bc8ccbc6abfa078f401d9fb05b753a344338268"
+
 [dev-dependencies.cargo-husky]
 version = "1"
 default-features = false

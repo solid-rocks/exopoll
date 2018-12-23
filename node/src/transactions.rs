@@ -1,44 +1,44 @@
 use exonum::blockchain::{ExecutionResult, Transaction, TransactionContext};
-use exonum::crypto::{Hash, PublicKey, SecretKey};
-use exonum::messages::{Message, RawTransaction, Signed};
+use exonum::crypto::Hash;
 
 use proto;
 use schema::PollSchema;
-use service;
 
 #[derive(Serialize, Deserialize, Clone, Debug, ProtobufConvert)]
-#[exonum(pb = "proto::TxRegisterVoter")]
-pub struct TxRegisterVoter {
-    pub uid: Hash,
-    pub ballot: Hash,
+#[exonum(pb = "proto::TxRegisterBallot")]
+pub struct TxRegisterBallot {
+    hash: Hash,
 }
 
-impl Transaction for TxRegisterVoter {
+impl Transaction for TxRegisterBallot {
     // FIXME: only registered authotites are able to register voters
     // FIXME: check if `uid` or `ballot` are already registered
     fn execute(&self, mut context: TransactionContext) -> ExecutionResult {
         let view = context.fork();
         let mut schema = PollSchema::new(view);
-        schema.add_voter(&self.uid, &self.ballot);
+        schema.add_ballot(&self.hash);
         Ok(())
     }
 }
 
-impl TxRegisterVoter {
-    pub fn new(&uid: &Hash, &ballot: &Hash) -> Self {
-        TxRegisterVoter { uid, ballot }
+impl TxRegisterBallot {
+    pub fn new(&hash: &Hash) -> Self {
+        TxRegisterBallot { hash }
     }
+}
 
-    pub fn sign(
-        self,
-        pk: &PublicKey,
-        sk: &SecretKey,
-    ) -> Signed<RawTransaction> {
-        Message::sign_transaction(self, service::SERVICE_ID, *pk, sk)
+#[derive(Serialize, Deserialize, Clone, Debug, ProtobufConvert)]
+#[exonum(pb = "proto::TxCloseRegistration")]
+pub struct TxCloseRegistration;
+impl Transaction for TxCloseRegistration {
+    // FIXME: only registered authotity are able to close registration
+    fn execute(&self, mut _context: TransactionContext) -> ExecutionResult {
+        Ok(())
     }
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, TransactionSet)]
 pub enum PollTransactions {
-    RegisterVoter(TxRegisterVoter),
+    RegisterBallot(TxRegisterBallot),
+    CloseRegistration(TxCloseRegistration),
 }
